@@ -44,7 +44,7 @@ class AuthenticationServiceTest {
         juan = users.save(User.create(new Username("jperez"), "Juan Perez", hasher.hash("secret123"),
                 Set.of(seller.id(), auditor.id())));
 
-        service = new AuthenticationService(users, roles, hasher, refreshTokens, accessTokens, clock, REFRESH_TTL);
+        service = new AuthenticationService(users, new PermissionResolver(roles, java.util.List::of), hasher, refreshTokens, accessTokens, clock, REFRESH_TTL);
     }
 
     @Test
@@ -124,7 +124,7 @@ class AuthenticationServiceTest {
             }
         };
         refreshTokens.all().forEach(racingStore::save);
-        AuthenticationService racingService = new AuthenticationService(users, new InMemoryRoleRepository(),
+        AuthenticationService racingService = new AuthenticationService(users, new PermissionResolver(new InMemoryRoleRepository(), java.util.List::of),
                 new FakePasswordHasher(), racingStore, (u, p) -> new AccessToken("x", clock.instant()), clock,
                 REFRESH_TTL);
 

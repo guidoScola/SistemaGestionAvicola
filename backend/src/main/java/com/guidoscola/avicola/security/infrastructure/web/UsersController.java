@@ -34,11 +34,12 @@ class UsersController {
         this.users = users;
     }
 
-    record UserResponse(UUID id, String username, String fullName, boolean active, Set<UUID> roleIds) {
+    record UserResponse(UUID id, String username, String fullName, boolean active, boolean superAdmin,
+                        Set<UUID> roleIds) {
 
         static UserResponse from(User user) {
             return new UserResponse(user.id(), user.username().value(), user.fullName(), user.isActive(),
-                    user.roleIds());
+                    user.isSuperAdmin(), user.roleIds());
         }
     }
 
@@ -69,43 +70,50 @@ class UsersController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('USERS_MANAGE')")
-    ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
-        User user = users.create(new CreateUserCommand(request.username(), request.fullName(), request.password(),
+    ResponseEntity<UserResponse> create(@AuthenticationPrincipal Jwt jwt,
+                                        @Valid @RequestBody CreateUserRequest request) {
+        User user = users.create(actorId(jwt), new CreateUserCommand(request.username(), request.fullName(), request.password(),
                 request.roleIds()));
         return ResponseEntity.created(URI.create("/api/users/" + user.id())).body(UserResponse.from(user));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USERS_MANAGE')")
-    UserResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
-        return UserResponse.from(users.update(id, new UpdateUserCommand(request.fullName(), request.roleIds())));
+    UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                        @Valid @RequestBody UpdateUserRequest request) {
+        return UserResponse.from(users.update(actorId(jwt), id, new UpdateUserCommand(request.fullName(), request.roleIds())));
     }
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('USERS_MANAGE')")
-    ResponseEntity<Void> activate(@PathVariable UUID id) {
-        users.activate(id);
+    ResponseEntity<Void> activate(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        users.activate(actorId(jwt), id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/deactivate")
     @PreAuthorize("hasAuthority('USERS_MANAGE')")
-    ResponseEntity<Void> deactivate(@PathVariable UUID id) {
-        users.deactivate(id);
+    ResponseEntity<Void> deactivate(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        users.deactivate(actorId(jwt), id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/password")
     @PreAuthorize("hasAuthority('USERS_MANAGE')")
-    ResponseEntity<Void> resetPassword(@PathVariable UUID id, @Valid @RequestBody ResetPasswordRequest request) {
-        users.resetPassword(id, request.newPassword());
+    ResponseEntity<Void> resetPassword(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                                       @Valid @RequestBody ResetPasswordRequest request) {
+        users.resetPassword(actorId(jwt), id, request.newPassword());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/me/password")
     ResponseEntity<Void> changeOwnPassword(@AuthenticationPrincipal Jwt jwt,
                                            @Valid @RequestBody ChangeOwnPasswordRequest request) {
-        users.changeOwnPassword(UUID.fromString(jwt.getSubject()), request.currentPassword(), request.newPassword());
+        users.changeOwnPassword(actorId(jwt), request.currentPassword(), request.newPassword());
         return ResponseEntity.noContent().build();
+    }
+
+    private static UUID actorId(Jwt jwt) {
+        return UUID.fromString(jwt.getSubject());
     }
 }

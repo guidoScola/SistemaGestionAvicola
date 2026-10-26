@@ -47,7 +47,9 @@ class AuthApiIT extends IntegrationTest {
     @BeforeEach
     void createUser() {
         Role seller = roleManagement.create(new RoleCommand("Vendedor", Set.of("USERS_VIEW", "ROLES_VIEW")));
-        juan = userManagement.create(new CreateUserCommand("jperez", "Juan Perez", "secret123", Set.of(seller.id())));
+        User root = userManagement.createSuperAdmin("root", "Root", "root-secret-1");
+        juan = userManagement.create(root.id(),
+                new CreateUserCommand("jperez", "Juan Perez", "secret123", Set.of(seller.id())));
     }
 
     private MvcResult login() throws Exception {

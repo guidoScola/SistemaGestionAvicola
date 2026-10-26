@@ -34,9 +34,21 @@ public abstract class ApiIntegrationTest extends IntegrationTest {
     @Autowired
     protected AuthenticationService authentication;
 
+    private User superAdmin;
+
+    /** The super administrator, created on first use; it performs the setup writes of each test. */
+    protected User superAdmin() {
+        if (superAdmin == null) {
+            superAdmin = userManagement.createSuperAdmin("root" + UUID.randomUUID().toString().substring(0, 6),
+                    "Root", PASSWORD);
+        }
+        return superAdmin;
+    }
+
     protected User createUser(String username, String... permissions) {
         Role role = roleManagement.create(new RoleCommand("role-" + UUID.randomUUID(), Set.of(permissions)));
-        return userManagement.create(new CreateUserCommand(username, "Name " + username, PASSWORD, Set.of(role.id())));
+        return userManagement.create(superAdmin().id(),
+                new CreateUserCommand(username, "Name " + username, PASSWORD, Set.of(role.id())));
     }
 
     protected String bearer(User user) {

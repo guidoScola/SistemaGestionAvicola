@@ -1,5 +1,6 @@
 package com.guidoscola.avicola.security.infrastructure;
 
+import com.guidoscola.avicola.security.application.PermissionResolver;
 import com.guidoscola.avicola.security.application.RoleManagementService;
 import com.guidoscola.avicola.security.application.UserManagementService;
 import com.guidoscola.avicola.security.application.port.PasswordHasher;
@@ -14,9 +15,14 @@ import org.springframework.context.annotation.Configuration;
 class SecurityUseCasesConfig {
 
     @Bean
+    PermissionResolver permissionResolver(RoleRepository roles, PermissionCatalog catalog) {
+        return new PermissionResolver(roles, catalog);
+    }
+
+    @Bean
     UserManagementService userManagementService(UserRepository users, RoleRepository roles, PasswordHasher hasher,
-                                                RefreshTokenStore refreshTokens) {
-        return new UserManagementService(users, roles, hasher, refreshTokens);
+                                                RefreshTokenStore refreshTokens, PermissionResolver permissions) {
+        return new UserManagementService(users, roles, hasher, refreshTokens, permissions);
     }
 
     @Bean

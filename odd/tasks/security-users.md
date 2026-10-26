@@ -7,7 +7,8 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 - S2: "Niveles de usuario con distintos permisos, para definir qué puede ver y hacer cada persona." — configurable roles: admin creates roles and assigns permission codes from the UI; users may have several roles.
 - S3: User CRUD (admin): create, edit, activate/deactivate (soft delete), assign roles, reset password; users change their own password.
 - S4: Enforcement: API returns 403 without the permission; UI hides menus/actions the user lacks.
-- S5: First admin is bootstrapped from env vars `ADMIN_USERNAME` / `ADMIN_PASSWORD`; no password in migrations.
+- S5: First admin is bootstrapped from env vars `ADMIN_USERNAME` / `ADMIN_PASSWORD`; no password in migrations. Per L11 it is a super administrator.
+- S6 (L11): "pero u administrador mayor tiene que haber" — approved rules: (1) super admin = bootstrap user, holds every permission (incl. future modules) without roles; (2) only a super admin can edit, deactivate, change roles of or reset the password of a super admin; (3) users with USERS_MANAGE can only assign roles whose permissions they already hold (no escalation); (4) the last active super admin cannot be deactivated. Also: a non super admin cannot reset the password of a user holding permissions they lack.
 - Assumption: root package `com.guidoscola.avicola`.
 - Out of scope: account lockout, email password recovery, audit log, 2FA.
 
@@ -21,6 +22,7 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 | T5 | S2, S3, S4 | Users/Roles/Permissions API with @PreAuthorize | inline | done | 66570d8 + fix |
 | T6 | S1, S4 | Frontend auth, protected routes, `<Can>` | inline | pending | |
 | T7 | S2, S3, S4 | Frontend users and roles screens | inline | pending | |
+| T5b | S6 | Super admin + no-escalation rules | inline | done | see log L12 |
 | T8 | — | README | inline | pending | |
 
 Risk: item 2 (security) on T4/T5 → independent verifier at their close.
@@ -36,3 +38,5 @@ Risk: item 2 (security) on T4/T5 → independent verifier at their close.
 - L8 (2026-10-26): T5 RED (UsersApiIT 8/8, RolesApiIT 6/6 failing), GREEN: 84 tests. Password reset/change and deactivation now revoke all refresh tokens (4 unit tests written together with the fix, RED not observed separately). /api/permissions returns code+description.
 - L9 (2026-10-26): Independent verifier on 66570d8: no blockers; S1, S3, S5 PASS; S2/S4 API PASS (UI pending). Advisories: roleIds [null] gave 500 (FIXED, RED observed, 85 tests green); USERS_MANAGE can self-assign any role and reset admin passwords (= admin-equivalent, product decision pending); admin can lock themselves out; reset/deactivate save + revoke not in one transaction.
 - L10 (2026-10-26): User chose UI copy in Spanish ("Español"); code stays English.
+- L11 (2026-10-26): Verifier advisory: USERS_MANAGE was admin-equivalent. User: "pero u administrador mayor tiene que haber"; then approved "Sí, con las 4 reglas".
+- L12 (2026-10-26): T5b GREEN: 95 tests (SuperAdminRulesTest 8, UsersApiIT +2). RED not observed separately (tests and implementation written in one batch). V3 adds users.super_admin. PermissionResolver is the single source of effective permissions (auth + user management). Bootstrap no longer creates an "Administrador" role.

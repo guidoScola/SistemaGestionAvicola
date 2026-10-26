@@ -1,10 +1,10 @@
 package com.guidoscola.avicola.security.infrastructure.bootstrap;
 
+import com.guidoscola.avicola.security.application.PermissionResolver;
 import com.guidoscola.avicola.security.application.port.PasswordHasher;
 import com.guidoscola.avicola.security.application.port.PermissionCatalog;
 import com.guidoscola.avicola.security.application.port.RoleRepository;
 import com.guidoscola.avicola.security.application.port.UserRepository;
-import com.guidoscola.avicola.security.domain.model.Role;
 import com.guidoscola.avicola.security.domain.model.User;
 import com.guidoscola.avicola.security.domain.model.Username;
 import com.guidoscola.avicola.support.IntegrationTest;
@@ -37,17 +37,21 @@ class AdminBootstrapIT extends IntegrationTest {
     @Autowired
     private PasswordHasher hasher;
 
+    @Autowired
+    private PermissionResolver permissions;
+
     @Test
-    void createsAdminWithAllPermissionsWhenNoUsersExist() {
+    void createsSuperAdminWithAllPermissionsWhenNoUsersExist() {
         bootstrap.run(null);
 
         User admin = users.findByUsername(new Username("admin")).orElseThrow();
-        Role adminRole = roles.findById(admin.roleIds().iterator().next()).orElseThrow();
 
         assertThat(admin.isActive()).isTrue();
+        assertThat(admin.isSuperAdmin()).isTrue();
+        assertThat(admin.roleIds()).isEmpty();
         assertThat(hasher.matches("admin-secret-1", admin.passwordHash())).isTrue();
-        assertThat(adminRole.name()).isEqualTo("Administrador");
-        assertThat(adminRole.permissions()).isEqualTo(catalog.all());
+        assertThat(permissions.effectivePermissions(admin)).isEqualTo(catalog.all());
+        assertThat(roles.findAll()).isEmpty();
     }
 
     @Test

@@ -3,11 +3,9 @@ package com.guidoscola.avicola.security.application;
 import com.guidoscola.avicola.security.application.port.AccessTokenIssuer;
 import com.guidoscola.avicola.security.application.port.PasswordHasher;
 import com.guidoscola.avicola.security.application.port.RefreshTokenStore;
-import com.guidoscola.avicola.security.application.port.RoleRepository;
 import com.guidoscola.avicola.security.application.port.UserRepository;
 import com.guidoscola.avicola.security.domain.model.PermissionCode;
 import com.guidoscola.avicola.security.domain.model.RefreshToken;
-import com.guidoscola.avicola.security.domain.model.Role;
 import com.guidoscola.avicola.security.domain.model.User;
 import com.guidoscola.avicola.security.domain.model.Username;
 import com.guidoscola.avicola.shared.domain.InvalidInputException;
@@ -34,18 +32,18 @@ public class AuthenticationService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository users;
-    private final RoleRepository roles;
+    private final PermissionResolver permissions;
     private final PasswordHasher passwordHasher;
     private final RefreshTokenStore refreshTokens;
     private final AccessTokenIssuer accessTokens;
     private final Clock clock;
     private final Duration refreshTtl;
 
-    public AuthenticationService(UserRepository users, RoleRepository roles, PasswordHasher passwordHasher,
+    public AuthenticationService(UserRepository users, PermissionResolver permissions, PasswordHasher passwordHasher,
                                  RefreshTokenStore refreshTokens, AccessTokenIssuer accessTokens,
                                  Clock clock, Duration refreshTtl) {
         this.users = users;
-        this.roles = roles;
+        this.permissions = permissions;
         this.passwordHasher = passwordHasher;
         this.refreshTokens = refreshTokens;
         this.accessTokens = accessTokens;
@@ -83,16 +81,13 @@ public class AuthenticationService {
     }
 
     private AuthSession openSession(User user) {
-        Set<PermissionCode> permissions = roles.findAllById(user.roleIds()).stream()
-                .map(Role::permissions)
-                .flatMap(Set::stream)
-                .collect(Collectors.toUnmodifiableSet());
+        Set<PermissionCode> granted = permissions.effectivePermissions(user);
         String rawRefreshToken = newRawToken();
         Instant refreshExpiresAt = clock.instant().plus(refreshTtl);
         refreshTokens.save(RefreshToken.issue(user.id(), sha256(rawRefreshToken), refreshExpiresAt));
         AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.id(), user.username().value(),
-                user.fullName(), permissions.stream().map(PermissionCode::value).collect(Collectors.toUnmodifiableSet()));
-        return new AuthSession(accessTokens.issue(user, permissions), rawRefreshToken, refreshExpiresAt,
+                user.fullName(), granted.stream().map(PermissionCode::value).collect(Collectors.toUnmodifiableSet()));
+        return new AuthSession(accessTokens.issue(user, granted), rawRefreshToken, refreshExpiresAt,
                 authenticatedUser);
     }
 

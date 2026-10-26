@@ -1,9 +1,9 @@
 package com.guidoscola.avicola.security.infrastructure;
 
 import com.guidoscola.avicola.security.application.AuthenticationService;
+import com.guidoscola.avicola.security.application.PermissionResolver;
 import com.guidoscola.avicola.security.application.port.PasswordHasher;
 import com.guidoscola.avicola.security.application.port.RefreshTokenStore;
-import com.guidoscola.avicola.security.application.port.RoleRepository;
 import com.guidoscola.avicola.security.application.port.UserRepository;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -83,11 +83,11 @@ class SecurityConfig {
     }
 
     @Bean
-    AuthenticationService authenticationService(UserRepository users, RoleRepository roles, PasswordHasher hasher,
+    AuthenticationService authenticationService(UserRepository users, PermissionResolver permissions, PasswordHasher hasher,
                                                 RefreshTokenStore refreshTokens, JwtEncoder encoder, Clock clock,
                                                 AuthProperties properties) {
         JwtAccessTokenIssuer issuer = new JwtAccessTokenIssuer(encoder, clock, properties.accessTokenTtl());
-        return new AuthenticationService(users, roles, hasher, refreshTokens, issuer, clock,
+        return new AuthenticationService(users, permissions, hasher, refreshTokens, issuer, clock,
                 properties.refreshTokenTtl());
     }
 

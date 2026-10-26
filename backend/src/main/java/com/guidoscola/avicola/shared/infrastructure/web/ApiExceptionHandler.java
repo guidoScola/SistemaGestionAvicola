@@ -2,6 +2,7 @@ package com.guidoscola.avicola.shared.infrastructure.web;
 
 import com.guidoscola.avicola.security.application.AuthenticationFailedException;
 import com.guidoscola.avicola.shared.domain.ConflictException;
+import com.guidoscola.avicola.shared.domain.ForbiddenException;
 import com.guidoscola.avicola.shared.domain.InvalidInputException;
 import com.guidoscola.avicola.shared.domain.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,6 +26,11 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     ProblemDetail notFound(NotFoundException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    ProblemDetail forbidden(ForbiddenException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)

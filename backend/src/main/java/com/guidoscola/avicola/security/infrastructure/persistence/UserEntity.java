@@ -34,6 +34,9 @@ class UserEntity {
     @Column(nullable = false)
     private boolean active;
 
+    @Column(name = "super_admin", nullable = false)
+    private boolean superAdmin;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role_id")
@@ -49,11 +52,12 @@ class UserEntity {
         entity.fullName = user.fullName();
         entity.passwordHash = user.passwordHash();
         entity.active = user.isActive();
+        entity.superAdmin = user.isSuperAdmin();
         entity.roleIds = new HashSet<>(user.roleIds());
         return entity;
     }
 
     User toDomain() {
-        return new User(id, new Username(username), fullName, passwordHash, active, roleIds);
+        return new User(id, new Username(username), fullName, passwordHash, active, superAdmin, roleIds);
     }
 }
