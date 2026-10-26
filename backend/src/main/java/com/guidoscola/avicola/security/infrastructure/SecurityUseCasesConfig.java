@@ -26,7 +26,8 @@ class SecurityUseCasesConfig {
     }
 
     @Bean
-    RoleManagementService roleManagementService(RoleRepository roles, UserRepository users, PermissionCatalog catalog) {
-        return new RoleManagementService(roles, users, catalog);
+    RoleManagementService roleManagementService(RoleRepository roles, UserRepository users, PermissionCatalog catalog,
+                                                PermissionResolver resolver) {
+        return new RoleManagementService(roles, users, catalog, resolver);
     }
 }

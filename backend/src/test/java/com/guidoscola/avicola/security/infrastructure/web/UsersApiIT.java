@@ -63,7 +63,7 @@ class UsersApiIT extends ApiIntegrationTest {
 
     @Test
     void managerCannotAssignRolesWithPermissionsTheyLack() throws Exception {
-        Role everything = roleManagement.create(new RoleCommand("Todo", Set.of("USERS_MANAGE", "ROLES_MANAGE")));
+        Role everything = roleManagement.create(superAdmin().id(), new RoleCommand("Todo", Set.of("USERS_MANAGE", "ROLES_MANAGE")));
         User manager = createUser("gestor", "USERS_MANAGE");
 
         mvc.perform(put("/api/users/{id}", manager.id()).header(HttpHeaders.AUTHORIZATION, bearer(manager))
@@ -90,7 +90,7 @@ class UsersApiIT extends ApiIntegrationTest {
 
     @Test
     void creatingRequiresUsersManage() throws Exception {
-        Role seller = roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        Role seller = roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
         String body = """
                 {"username": "mgomez", "fullName": "Maria Gomez", "password": "secret123", "roleIds": ["%s"]}
                 """.formatted(seller.id());
@@ -134,7 +134,7 @@ class UsersApiIT extends ApiIntegrationTest {
     @Test
     void updatesFullNameAndRoles() throws Exception {
         User juan = createUser("jperez");
-        Role seller = roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        Role seller = roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
 
         mvc.perform(put("/api/users/{id}", juan.id()).header(HttpHeaders.AUTHORIZATION, bearerWith("USERS_MANAGE"))
                         .contentType(MediaType.APPLICATION_JSON)

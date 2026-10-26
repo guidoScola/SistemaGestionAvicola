@@ -46,7 +46,7 @@ public abstract class ApiIntegrationTest extends IntegrationTest {
     }
 
     protected User createUser(String username, String... permissions) {
-        Role role = roleManagement.create(new RoleCommand("role-" + UUID.randomUUID(), Set.of(permissions)));
+        Role role = roleManagement.create(superAdmin().id(), new RoleCommand("role-" + UUID.randomUUID(), Set.of(permissions)));
         return userManagement.create(superAdmin().id(),
                 new CreateUserCommand(username, "Name " + username, PASSWORD, Set.of(role.id())));
     }

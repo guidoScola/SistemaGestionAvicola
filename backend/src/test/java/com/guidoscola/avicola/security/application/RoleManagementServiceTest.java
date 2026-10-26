@@ -22,6 +22,7 @@ class RoleManagementServiceTest {
     private InMemoryRoleRepository roles;
     private InMemoryUserRepository users;
     private RoleManagementService service;
+    private User root;
 
     @BeforeEach
     void setUp() {
@@ -30,12 +31,13 @@ class RoleManagementServiceTest {
         PermissionCatalog catalog = () -> List.of(
                 new Permission(new PermissionCode("ROLES_VIEW"), "View roles"),
                 new Permission(new PermissionCode("USERS_VIEW"), "View users"));
-        service = new RoleManagementService(roles, users, catalog);
+        service = new RoleManagementService(roles, users, catalog, new PermissionResolver(roles, catalog));
+        root = users.save(User.createSuperAdmin(new Username("root"), "Root", "hash"));
     }
 
     @Test
     void createsRoleWithKnownPermissions() {
-        Role role = service.create(new RoleCommand("Vendedor", Set.of("USERS_VIEW")));
+        Role role = service.create(root.id(), new RoleCommand("Vendedor", Set.of("USERS_VIEW")));
 
         assertThat(roles.findById(role.id())).isPresent();
         assertThat(role.permissions()).containsExactly(new PermissionCode("USERS_VIEW"));
@@ -43,24 +45,24 @@ class RoleManagementServiceTest {
 
     @Test
     void rejectsPermissionOutsideCatalog() {
-        assertThatThrownBy(() -> service.create(new RoleCommand("Vendedor", Set.of("INVOICES_ISSUE"))))
+        assertThatThrownBy(() -> service.create(root.id(), new RoleCommand("Vendedor", Set.of("INVOICES_ISSUE"))))
                 .isInstanceOf(InvalidInputException.class);
         assertThat(roles.findAll()).isEmpty();
     }
 
     @Test
     void rejectsDuplicatedNameIgnoringCase() {
-        service.create(new RoleCommand("Vendedor", Set.of()));
+        service.create(root.id(), new RoleCommand("Vendedor", Set.of()));
 
-        assertThatThrownBy(() -> service.create(new RoleCommand("VENDEDOR", Set.of())))
+        assertThatThrownBy(() -> service.create(root.id(), new RoleCommand("VENDEDOR", Set.of())))
                 .isInstanceOf(ConflictException.class);
     }
 
     @Test
     void updateKeepsOwnNameWithoutConflict() {
-        Role role = service.create(new RoleCommand("Vendedor", Set.of()));
+        Role role = service.create(root.id(), new RoleCommand("Vendedor", Set.of()));
 
-        Role updated = service.update(role.id(), new RoleCommand("vendedor", Set.of("ROLES_VIEW")));
+        Role updated = service.update(root.id(), role.id(), new RoleCommand("vendedor", Set.of("ROLES_VIEW")));
 
         assertThat(updated.name()).isEqualTo("vendedor");
         assertThat(updated.permissions()).containsExactly(new PermissionCode("ROLES_VIEW"));
@@ -68,7 +70,7 @@ class RoleManagementServiceTest {
 
     @Test
     void deletesUnusedRole() {
-        Role role = service.create(new RoleCommand("Vendedor", Set.of()));
+        Role role = service.create(root.id(), new RoleCommand("Vendedor", Set.of()));
 
         service.delete(role.id());
 
@@ -77,7 +79,7 @@ class RoleManagementServiceTest {
 
     @Test
     void refusesToDeleteRoleAssignedToUsers() {
-        Role role = service.create(new RoleCommand("Vendedor", Set.of()));
+        Role role = service.create(root.id(), new RoleCommand("Vendedor", Set.of()));
         users.save(User.create(new Username("jperez"), "Juan", "hash", Set.of(role.id())));
 
         assertThatThrownBy(() -> service.delete(role.id())).isInstanceOf(ConflictException.class);
