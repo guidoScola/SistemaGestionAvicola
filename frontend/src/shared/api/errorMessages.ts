@@ -1,0 +1,46 @@
+import { ApiError } from './httpClient'
+
+// Backend problem details are in English; the UI shows them in Spanish.
+const exact: Record<string, string> = {
+  'Password must be at least 8 characters': 'La contraseña debe tener al menos 8 caracteres.',
+  'Current password is incorrect': 'La contraseña actual no es correcta.',
+  'One or more roles do not exist': 'Alguno de los roles seleccionados no existe.',
+  'One or more permissions do not exist': 'Alguno de los permisos seleccionados no existe.',
+  'Role is assigned to users and cannot be deleted': 'El rol está asignado a usuarios y no se puede eliminar.',
+  'You can only assign roles whose permissions you already hold': 'Solo podés asignar roles cuyos permisos ya tenés.',
+  'You can only grant permissions you already hold': 'Solo podés otorgar permisos que ya tenés.',
+  'Only a super administrator can manage a super administrator':
+    'Solo un super administrador puede modificar a otro super administrador.',
+  'You cannot reset the password of a user with permissions you do not hold':
+    'No podés resetear la contraseña de un usuario con permisos que vos no tenés.',
+  'The last active super administrator cannot be deactivated':
+    'No se puede desactivar al último super administrador activo.',
+  'Full name is required and must be at most 100 characters':
+    'El nombre completo es obligatorio y puede tener hasta 100 caracteres.',
+  'Role name is required and must be at most 50 characters':
+    'El nombre del rol es obligatorio y puede tener hasta 50 caracteres.',
+  'Username must be 3-50 characters: letters, digits, dot, underscore or hyphen':
+    'El usuario debe tener entre 3 y 50 caracteres: letras, números, punto, guion o guion bajo.',
+}
+
+const prefixes: Array<[string, string]> = [
+  ['Username already exists', 'Ese nombre de usuario ya existe.'],
+  ['Role name already exists', 'Ya existe un rol con ese nombre.'],
+]
+
+export function toUserMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return 'No se pudo conectar con el servidor.'
+  }
+  const translated = exact[error.message] ?? prefixes.find(([prefix]) => error.message.startsWith(prefix))?.[1]
+  if (translated) {
+    return translated
+  }
+  if (error.status === 403) {
+    return 'No tenés permiso para realizar esta acción.'
+  }
+  if (error.status === 404) {
+    return 'El registro ya no existe.'
+  }
+  return 'No se pudo completar la operación.'
+}
