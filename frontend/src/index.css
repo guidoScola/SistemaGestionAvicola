@@ -120,7 +120,8 @@ fieldset {
   gap: 0.4rem;
 }
 
-input {
+input,
+select {
   font: inherit;
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);
@@ -246,4 +247,9 @@ th {
     border-bottom: 1px solid var(--border);
     padding: 0.5rem 0;
   }
+}
+
+.search {
+  max-width: 320px;
+  margin-bottom: 0.75rem;
 }

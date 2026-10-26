@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { RolesPage } from '../features/roles/RolesPage'
+import { SuppliersPage } from '../features/suppliers/SuppliersPage'
 import { MyAccountPage } from '../features/users/MyAccountPage'
 import { UsersPage } from '../features/users/UsersPage'
 import { AppLayout } from './AppLayout'
@@ -31,6 +32,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute permission="ROLES_VIEW">
               <RolesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="proveedores"
+          element={
+            <ProtectedRoute permission="SUPPLIERS_VIEW">
+              <SuppliersPage />
             </ProtectedRoute>
           }
         />
