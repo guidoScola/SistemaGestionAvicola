@@ -14,10 +14,14 @@ export async function login(username: string, password: string): Promise<Session
   return session
 }
 
+/**
+ * Ends the session on the server first. If the server cannot be reached the local session is kept, because the
+ * refresh cookie would still be valid and silently sign the user back in on the next page load.
+ */
 export async function logout(): Promise<void> {
-  try {
-    await fetch('/api/auth/logout', { method: 'POST' })
-  } finally {
-    clearSession()
+  const response = await fetch('/api/auth/logout', { method: 'POST' })
+  if (!response.ok) {
+    throw new ApiError(response.status, 'Logout failed')
   }
+  clearSession()
 }

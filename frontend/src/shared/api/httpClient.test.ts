@@ -41,6 +41,13 @@ describe('httpClient', () => {
     expect(await refreshSession()).toBeNull()
   })
 
+  it('returns null when the backend cannot be reached', async () => {
+    setSession(sessionBody('token-1'))
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    expect(await refreshSession()).toBeNull()
+  })
+
   it('refreshes once and retries when the access token expired', async () => {
     setSession(sessionBody('expired'))
     fetchMock

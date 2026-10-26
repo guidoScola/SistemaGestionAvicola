@@ -57,6 +57,11 @@ export function refreshSession(): Promise<Session | null> {
         setSession(session)
         return session
       })
+      .catch(() => {
+        // Backend unreachable or malformed body: treat as signed out instead of loading forever.
+        clearSession()
+        return null
+      })
       .finally(() => {
         refreshInFlight = null
       })
