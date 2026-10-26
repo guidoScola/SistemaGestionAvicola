@@ -1,0 +1,5 @@
+.idea/
+.vscode/
+*.log
+.claude/settings.local.json
+.atl/.skill-registry.cache.json
