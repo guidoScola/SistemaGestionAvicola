@@ -1,5 +1,6 @@
 package com.guidoscola.avicola.security.application;
 
+import com.guidoscola.avicola.security.domain.model.RefreshToken;
 import com.guidoscola.avicola.security.domain.model.Role;
 import com.guidoscola.avicola.security.domain.model.User;
 import com.guidoscola.avicola.shared.domain.ConflictException;
@@ -8,6 +9,7 @@ import com.guidoscola.avicola.shared.domain.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,15 +19,61 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class UserManagementServiceTest {
 
     private InMemoryUserRepository users;
+    private InMemoryRefreshTokenStore refreshTokens;
     private UserManagementService service;
     private Role seller;
 
     @BeforeEach
     void setUp() {
         users = new InMemoryUserRepository();
+        refreshTokens = new InMemoryRefreshTokenStore();
         InMemoryRoleRepository roles = new InMemoryRoleRepository();
         seller = roles.save(Role.create("Vendedor", Set.of()));
-        service = new UserManagementService(users, roles, new FakePasswordHasher());
+        service = new UserManagementService(users, roles, new FakePasswordHasher(), refreshTokens);
+    }
+
+    private void openSessionFor(User user) {
+        refreshTokens.save(RefreshToken.issue(user.id(), "hash-" + UUID.randomUUID(), Instant.now().plusSeconds(60)));
+    }
+
+    @Test
+    void resettingPasswordEndsOpenSessions() {
+        User user = createJuan();
+        openSessionFor(user);
+
+        service.resetPassword(user.id(), "newSecret1");
+
+        assertThat(refreshTokens.all()).isNotEmpty().allMatch(RefreshToken::revoked);
+    }
+
+    @Test
+    void changingOwnPasswordEndsOpenSessions() {
+        User user = createJuan();
+        openSessionFor(user);
+
+        service.changeOwnPassword(user.id(), "secret123", "newSecret1");
+
+        assertThat(refreshTokens.all()).isNotEmpty().allMatch(RefreshToken::revoked);
+    }
+
+    @Test
+    void deactivatingEndsOpenSessions() {
+        User user = createJuan();
+        openSessionFor(user);
+
+        service.deactivate(user.id());
+
+        assertThat(refreshTokens.all()).isNotEmpty().allMatch(RefreshToken::revoked);
+    }
+
+    @Test
+    void failedOwnPasswordChangeKeepsSessions() {
+        User user = createJuan();
+        openSessionFor(user);
+
+        assertThatThrownBy(() -> service.changeOwnPassword(user.id(), "wrong-pass", "newSecret1"))
+                .isInstanceOf(InvalidInputException.class);
+        assertThat(refreshTokens.all()).noneMatch(RefreshToken::revoked);
     }
 
     private User createJuan() {
