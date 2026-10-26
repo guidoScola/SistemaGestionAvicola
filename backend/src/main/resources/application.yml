@@ -17,3 +17,9 @@ management:
     web:
       exposure:
         include: health
+
+avicola:
+  bootstrap:
+    admin:
+      username: ${ADMIN_USERNAME:}
+      password: ${ADMIN_PASSWORD:}
