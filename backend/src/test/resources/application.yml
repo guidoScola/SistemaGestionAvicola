@@ -10,3 +10,8 @@ spring:
   flyway:
     locations: classpath:db/migration
     clean-disabled: false
+
+avicola:
+  security:
+    jwt-secret: test-secret-that-is-at-least-32-bytes-long!!
+    cookie-secure: false
