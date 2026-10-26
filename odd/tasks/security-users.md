@@ -18,7 +18,7 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 | T2 | S2, S3 | Security domain + ports | inline | done | ef88d7f |
 | T3 | S2, S5 | Persistence: Flyway V1 + seed, JPA adapters, admin bootstrap | inline | done | 4f46a20 |
 | T4 | S1 | Authentication API + SecurityConfig + JWT | inline | done | 46b36f2 |
-| T5 | S2, S3, S4 | Users/Roles/Permissions API with @PreAuthorize | inline | done | see log L8 |
+| T5 | S2, S3, S4 | Users/Roles/Permissions API with @PreAuthorize | inline | done | 66570d8 + fix |
 | T6 | S1, S4 | Frontend auth, protected routes, `<Can>` | inline | pending | |
 | T7 | S2, S3, S4 | Frontend users and roles screens | inline | pending | |
 | T8 | — | README | inline | pending | |
@@ -34,3 +34,5 @@ Risk: item 2 (security) on T4/T5 → independent verifier at their close.
 - L6 (2026-10-26): T4 RED (AuthApiIT 7/8 failing), GREEN: 66 tests. HS256 JWT (15m, claims username/fullName/permissions, issuer avicola), refresh token 7d rotating, atomic revoke via conditional UPDATE, reuse/race revokes all user sessions. JWT_SECRET >=32 bytes required (fail fast). No CORS: Vite proxy keeps same origin. Known tradeoff: permission/deactivation changes apply to access tokens only after <=15m.
 - L7 (2026-10-26): Native review review-d857c455575d80a3 over c6e1134..46b36f2 (lenses risk/resilience/reliability): APPROVED, acknowledged. 9 non-blocking advisories recorded in Engram (odd/security-users/review-1). R1-002 (password reset/change keep sessions) folded into T5 since T5 exposes those endpoints.
 - L8 (2026-10-26): T5 RED (UsersApiIT 8/8, RolesApiIT 6/6 failing), GREEN: 84 tests. Password reset/change and deactivation now revoke all refresh tokens (4 unit tests written together with the fix, RED not observed separately). /api/permissions returns code+description.
+- L9 (2026-10-26): Independent verifier on 66570d8: no blockers; S1, S3, S5 PASS; S2/S4 API PASS (UI pending). Advisories: roleIds [null] gave 500 (FIXED, RED observed, 85 tests green); USERS_MANAGE can self-assign any role and reset admin passwords (= admin-equivalent, product decision pending); admin can lock themselves out; reset/deactivate save + revoke not in one transaction.
+- L10 (2026-10-26): User chose UI copy in Spanish ("Español"); code stays English.

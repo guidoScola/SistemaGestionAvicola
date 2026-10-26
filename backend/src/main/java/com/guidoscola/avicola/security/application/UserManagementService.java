@@ -87,6 +87,9 @@ public class UserManagementService {
     }
 
     private Set<UUID> requireExistingRoles(Set<UUID> roleIds) {
+        if (roleIds != null && roleIds.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new InvalidInputException("Role ids must not be null");
+        }
         Set<UUID> ids = roleIds == null ? Set.of() : Set.copyOf(roleIds);
         if (roles.findAllById(ids).size() != ids.size()) {
             throw new InvalidInputException("One or more roles do not exist");

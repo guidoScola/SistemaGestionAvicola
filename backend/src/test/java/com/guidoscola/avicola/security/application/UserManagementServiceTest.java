@@ -115,6 +115,16 @@ class UserManagementServiceTest {
     }
 
     @Test
+    void rejectsNullRoleId() {
+        Set<UUID> withNull = new java.util.HashSet<>();
+        withNull.add(null);
+
+        assertThatThrownBy(() -> service.create(new CreateUserCommand("jperez", "Juan", "secret123", withNull)))
+                .isInstanceOf(InvalidInputException.class);
+        assertThat(users.findAll()).isEmpty();
+    }
+
+    @Test
     void updatesFullNameAndRoles() {
         User user = createJuan();
 
