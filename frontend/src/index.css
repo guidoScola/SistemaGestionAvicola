@@ -253,3 +253,30 @@ th {
   max-width: 320px;
   margin-bottom: 0.75rem;
 }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.total,
+.balance {
+  font-weight: 600;
+}
+
+tfoot th,
+tfoot td {
+  font-weight: 600;
+  color: inherit;
+}

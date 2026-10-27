@@ -1,6 +1,9 @@
 import { Route, Routes } from 'react-router'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { SupplierAccountPage } from '../features/purchases/SupplierAccountPage'
+import { VatLedgerPage } from '../features/purchases/VatLedgerPage'
+import { VouchersPage } from '../features/purchases/VouchersPage'
 import { RolesPage } from '../features/roles/RolesPage'
 import { SuppliersPage } from '../features/suppliers/SuppliersPage'
 import { MyAccountPage } from '../features/users/MyAccountPage'
@@ -40,6 +43,30 @@ export function AppRoutes() {
           element={
             <ProtectedRoute permission="SUPPLIERS_VIEW">
               <SuppliersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="compras/comprobantes"
+          element={
+            <ProtectedRoute permission="PURCHASES_VIEW">
+              <VouchersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="compras/iva-compras"
+          element={
+            <ProtectedRoute permission="PURCHASES_VIEW">
+              <VatLedgerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="compras/cuenta-corriente"
+          element={
+            <ProtectedRoute permission="PURCHASES_VIEW">
+              <SupplierAccountPage />
             </ProtectedRoute>
           }
         />
