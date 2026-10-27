@@ -94,6 +94,9 @@ class SupplierVouchersApiIT extends ApiIntegrationTest {
                 {"supplierId": "%s", "type": "FACTURA_C", "pointOfSale": 1, "number": 5}
                 """.formatted(granja.id()))
                 .andExpect(status().isBadRequest());
+        register(auth, facturaA(5, "2026-10-05").replace("\"vatPerceptions\": 30.50", "\"exempt\": 1e999999999"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Amounts must have at most 13 integer digits"));
 
         assertThat(voucherCount()).isEqualTo(1);
     }

@@ -14,6 +14,7 @@ const exact: Record<string, string> = {
   'VAT 27% does not match its net taxed amount': 'El IVA 27% no coincide con su neto gravado.',
   'Amounts must not be negative': 'Los importes no pueden ser negativos.',
   'Amounts must have at most 2 decimals': 'Los importes pueden tener hasta 2 decimales.',
+  'Amounts must have at most 13 integer digits': 'Los importes pueden tener hasta 13 dígitos enteros.',
   'Voucher total must be greater than zero': 'El total del comprobante debe ser mayor a cero.',
   'Point of sale must be between 1 and 99999': 'El punto de venta debe estar entre 1 y 99999.',
   'Number must be between 1 and 99999999': 'El número debe estar entre 1 y 99999999.',

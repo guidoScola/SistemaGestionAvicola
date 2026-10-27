@@ -104,6 +104,19 @@ class SupplierVoucherTest {
     }
 
     @Test
+    void amountsMustFitThirteenIntegerDigits() {
+        assertThat(voucher(VoucherType.FACTURA_C, nonTaxed("9999999999999.99")).total())
+                .isEqualByComparingTo("9999999999999.99");
+
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_C, nonTaxed("10000000000000")))
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("Amounts must have at most 13 integer digits");
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_C, nonTaxed("1E+999999999")))
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("Amounts must have at most 13 integer digits");
+    }
+
+    @Test
     void validatesIdentificationAndDates() {
         UUID supplier = UUID.randomUUID();
         VoucherAmounts amounts = nonTaxed("10");
