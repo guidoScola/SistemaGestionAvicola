@@ -115,6 +115,16 @@ describe('purchase reports', () => {
     expect(screen.getByRole('link', { name: 'IVA Compras' })).toBeInTheDocument()
   })
 
+  it('requires SUPPLIERS_VIEW for the current account', async () => {
+    mockApi(['PURCHASES_VIEW'], {})
+
+    renderApp('/compras/cuenta-corriente')
+
+    expect(await screen.findByText('No tenés permiso para ver esta sección.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'IVA Compras' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Cuenta corriente' })).not.toBeInTheDocument()
+  })
+
   it('shows the current account of the selected supplier from the start of the year', async () => {
     mockApi(['PURCHASES_VIEW', 'SUPPLIERS_VIEW'], {
       'GET /api/suppliers': ok(suppliers),

@@ -78,6 +78,15 @@ describe('VouchersPage', () => {
     expect(screen.queryByRole('button', { name: 'Nuevo comprobante' })).not.toBeInTheDocument()
   })
 
+  it('offers voucher entry only when the supplier list can be loaded', async () => {
+    mockApi(['PURCHASES_VIEW', 'PURCHASES_MANAGE'], { [`GET ${OCTOBER}`]: ok([voucher]) })
+
+    renderApp('/compras/comprobantes')
+
+    await screen.findByRole('row', { name: /Granja Don Pedro SA/ })
+    expect(screen.queryByRole('button', { name: 'Nuevo comprobante' })).not.toBeInTheDocument()
+  })
+
   it('reloads when the period changes', async () => {
     const fetchMock = mockApi(['PURCHASES_VIEW'], {
       [`GET ${OCTOBER}`]: ok([voucher]),

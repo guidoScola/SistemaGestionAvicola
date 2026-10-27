@@ -66,7 +66,9 @@ export function AppRoutes() {
           path="compras/cuenta-corriente"
           element={
             <ProtectedRoute permission="PURCHASES_VIEW">
-              <SupplierAccountPage />
+              <ProtectedRoute permission="SUPPLIERS_VIEW">
+                <SupplierAccountPage />
+              </ProtectedRoute>
             </ProtectedRoute>
           }
         />
