@@ -1,5 +1,6 @@
 package com.guidoscola.avicola.purchases.infrastructure;
 
+import com.guidoscola.avicola.purchases.application.PurchaseReportsService;
 import com.guidoscola.avicola.purchases.application.SupplierManagementService;
 import com.guidoscola.avicola.purchases.application.SupplierVoucherService;
 import com.guidoscola.avicola.purchases.application.port.SupplierRepository;
@@ -18,5 +19,10 @@ class PurchasesUseCasesConfig {
     @Bean
     SupplierVoucherService supplierVoucherService(SupplierVoucherRepository vouchers, SupplierRepository suppliers) {
         return new SupplierVoucherService(vouchers, suppliers);
+    }
+
+    @Bean
+    PurchaseReportsService purchaseReportsService(SupplierVoucherRepository vouchers, SupplierRepository suppliers) {
+        return new PurchaseReportsService(vouchers, suppliers);
     }
 }

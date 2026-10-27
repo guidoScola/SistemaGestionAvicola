@@ -14,7 +14,7 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 | T1 | S1 | Suppliers backend: domain, V4 migration + permissions, API | inline | done | cc264fe |
 | T2 | S1 | Suppliers frontend: list, create, edit, deactivate/reactivate | inline | done | see log L4 |
 | T3 | S2 | Vouchers backend: domain, V5 migration + permissions, entry/list/get API | inline | done | see L8 |
-| T4 | S3, S4 | VAT ledger and supplier current account queries + API | inline | pending | |
+| T4 | S3, S4 | VAT ledger and supplier current account queries + API | inline | done | see L9 |
 | T5 | S2 | Vouchers frontend: list and entry form | inline | pending | |
 | T6 | S3, S4 | VAT ledger and current account screens | inline | pending | |
 
@@ -27,3 +27,4 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 - L6 (2026-10-27): "sigamso con el desarrollo real. sigamso con le modulo"
 - L7 (2026-10-27): Proposed the standard Argentine voucher set and tax concepts; user: "si esta bien el  estandar". T3 split into T3-T6, all inline (no Writer trigger: backend and frontend depend on the same contract).
 - L8 (2026-10-27): T3 RED (172 compile errors), GREEN: SupplierVoucherTest 7, SupplierVoucherServiceTest 7, SupplierVouchersApiIT 4; full backend suite 145 tests, 0 failures. Endpoints: POST/GET /api/purchases/vouchers (from,to required), GET /api/purchases/vouchers/{id}.
+- L9 (2026-10-27): T4 RED (20 compile errors), GREEN: PurchaseReportsServiceTest 6, PurchaseReportsApiIT 3; full backend suite 154 tests, 0 failures. Ledger and account are derived queries (no posting table); README API table updated.
