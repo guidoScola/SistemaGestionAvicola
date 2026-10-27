@@ -4,16 +4,19 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 
 ## Specs
 - S1: "ABM (alta, baja y modificación) de proveedores." — per L2, suppliers first. Fields: business name, CUIT (11 digits, valid check digit, unique), VAT condition (Responsable Inscripto, Monotributista, Exento, No Responsable), address, city, province, phone, email. "Baja" is a soft deactivation (suppliers will be referenced by invoices) and can be reverted. Permissions `SUPPLIERS_VIEW`, `SUPPLIERS_MANAGE`. UI in Spanish. (Field list and VAT conditions are assumptions announced to the user in L2.)
-- S2: "Ingreso de comprobantes de proveedores." — pending decision on supported voucher types and tax concepts (L2).
-- S3: "Actualización automática del subdiario de IVA compras." — pending S2.
-- S4: "Actualización automática de las cuentas corrientes de proveedores." — pending S2.
+- S2: "Ingreso de comprobantes de proveedores." — per L7 (standard accepted): voucher types Factura A/B/C, Nota de Crédito A/B/C, Nota de Débito A/B/C; amounts: net taxed per rate (21%, 10,5%, 27%), non-taxed, exempt, VAT per rate, VAT perceptions, IIBB perceptions, other taxes, total; data: date, point of sale, number, supplier, due date. Permissions `PURCHASES_VIEW`, `PURCHASES_MANAGE`. Assumptions: only letter A discriminates VAT (B/C carry no net taxed/VAT); VAT per rate must match net × rate within $1.00 (multi-line rounding); total is computed; supplier + type + point of sale + number is unique; inactive suppliers cannot receive new vouchers; amounts are entered positive and credit notes subtract.
+- S3: "Actualización automática del subdiario de IVA compras." — derived from the vouchers (no separate table), filtered by issue date range, credit notes signed negative, with column totals. Assumption: period by issue date. PDF/Excel export belongs to module 5.
+- S4: "Actualización automática de las cuentas corrientes de proveedores." — derived per supplier from its vouchers: opening balance, movements with running balance (invoices/debit notes increase the debt, credit notes decrease it), closing balance. Payments join in module 3.
 
 ## Tasks
 | ID | Specs | Unit | Route | Status | Commit |
 |---|---|---|---|---|---|
 | T1 | S1 | Suppliers backend: domain, V4 migration + permissions, API | inline | done | cc264fe |
 | T2 | S1 | Suppliers frontend: list, create, edit, deactivate/reactivate | inline | done | see log L4 |
-| T3 | S2-S4 | Supplier invoices, VAT ledger, current account | — | blocked on decision | |
+| T3 | S2 | Vouchers backend: domain, V5 migration + permissions, entry/list/get API | inline | done | see L8 |
+| T4 | S3, S4 | VAT ledger and supplier current account queries + API | inline | pending | |
+| T5 | S2 | Vouchers frontend: list and entry form | inline | pending | |
+| T6 | S3, S4 | VAT ledger and current account screens | inline | pending | |
 
 ## Log
 - L1 (2026-10-26): "Bien, habria que seguir con le otro modulo"
@@ -21,3 +24,6 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 - L3 (2026-10-26): T1 RED (106 compile errors), GREEN: 127 backend tests (CuitTest 10, SupplierManagementServiceTest 9, SuppliersApiIT 7). RolesApiIT catalog assertion relaxed from exact 4 codes to hasItems (each module adds permissions).
 - L4 (2026-10-26): T2 RED (7 failing), GREEN: 35 Vitest tests, lint/build clean. Suppliers page with search by name/CUIT, Spanish VAT labels and errors, menu entry gated by SUPPLIERS_VIEW. Smoke on dev: V4 migrated, super admin got SUPPLIERS_* automatically, create 201, invalid CUIT 400.
 - L5 (2026-10-26): Native review of suppliers slice (83b253e..2391515, lenses risk/reliability): APPROVED, acknowledged. Advisories: concurrent same-CUIT create -> already mapped to 409 by ApiExceptionHandler (DataIntegrityViolationException, base code); catalog test uses hasItems instead of exact set; row buttons not disabled while a mutation is pending.
+- L6 (2026-10-27): "sigamso con el desarrollo real. sigamso con le modulo"
+- L7 (2026-10-27): Proposed the standard Argentine voucher set and tax concepts; user: "si esta bien el  estandar". T3 split into T3-T6, all inline (no Writer trigger: backend and frontend depend on the same contract).
+- L8 (2026-10-27): T3 RED (172 compile errors), GREEN: SupplierVoucherTest 7, SupplierVoucherServiceTest 7, SupplierVouchersApiIT 4; full backend suite 145 tests, 0 failures. Endpoints: POST/GET /api/purchases/vouchers (from,to required), GET /api/purchases/vouchers/{id}.
