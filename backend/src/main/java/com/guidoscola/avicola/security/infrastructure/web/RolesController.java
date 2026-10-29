@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,15 +61,17 @@ class RolesController {
 
     @PostMapping("/api/roles")
     @PreAuthorize("hasAuthority('ROLES_MANAGE')")
-    ResponseEntity<RoleResponse> create(@Valid @RequestBody RoleRequest request) {
-        Role role = roles.create(new RoleCommand(request.name(), request.permissionCodes()));
+    ResponseEntity<RoleResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody RoleRequest request) {
+        Role role = roles.create(actorId(jwt), new RoleCommand(request.name(), request.permissionCodes()));
         return ResponseEntity.created(URI.create("/api/roles/" + role.id())).body(RoleResponse.from(role));
     }
 
     @PutMapping("/api/roles/{id}")
     @PreAuthorize("hasAuthority('ROLES_MANAGE')")
-    RoleResponse update(@PathVariable UUID id, @Valid @RequestBody RoleRequest request) {
-        return RoleResponse.from(roles.update(id, new RoleCommand(request.name(), request.permissionCodes())));
+    RoleResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+                        @Valid @RequestBody RoleRequest request) {
+        return RoleResponse.from(
+                roles.update(actorId(jwt), id, new RoleCommand(request.name(), request.permissionCodes())));
     }
 
     @DeleteMapping("/api/roles/{id}")
@@ -83,5 +87,9 @@ class RolesController {
         return roles.permissionCatalog().stream()
                 .map(p -> new PermissionResponse(p.code().value(), p.description()))
                 .toList();
+    }
+
+    private static UUID actorId(Jwt jwt) {
+        return UUID.fromString(jwt.getSubject());
     }
 }

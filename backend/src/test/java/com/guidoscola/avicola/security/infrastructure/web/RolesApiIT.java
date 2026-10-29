@@ -2,12 +2,14 @@ package com.guidoscola.avicola.security.infrastructure.web;
 
 import com.guidoscola.avicola.security.application.RoleCommand;
 import com.guidoscola.avicola.security.domain.model.Role;
+import com.guidoscola.avicola.security.domain.model.User;
 import com.guidoscola.avicola.support.ApiIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -23,7 +25,7 @@ class RolesApiIT extends ApiIntegrationTest {
 
     @Test
     void listingRequiresRolesView() throws Exception {
-        roleManagement.create(new RoleCommand("Vendedor", Set.of("USERS_VIEW")));
+        roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of("USERS_VIEW")));
 
         mvc.perform(get("/api/roles")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/roles").header(HttpHeaders.AUTHORIZATION, bearerWith("USERS_VIEW")))
@@ -54,7 +56,8 @@ class RolesApiIT extends ApiIntegrationTest {
         mvc.perform(post("/api/roles").header(HttpHeaders.AUTHORIZATION, bearerWith("ROLES_VIEW"))
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isForbidden());
-        mvc.perform(post("/api/roles").header(HttpHeaders.AUTHORIZATION, bearerWith("ROLES_MANAGE"))
+        mvc.perform(post("/api/roles").header(HttpHeaders.AUTHORIZATION,
+                                bearerWith("ROLES_MANAGE", "USERS_VIEW", "ROLES_VIEW"))
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Contador"))
@@ -65,7 +68,7 @@ class RolesApiIT extends ApiIntegrationTest {
 
     @Test
     void rejectsUnknownPermissionDuplicatesAndMissingName() throws Exception {
-        roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
         String auth = bearerWith("ROLES_MANAGE");
 
         mvc.perform(post("/api/roles").header(HttpHeaders.AUTHORIZATION, auth).contentType(MediaType.APPLICATION_JSON)
@@ -85,9 +88,10 @@ class RolesApiIT extends ApiIntegrationTest {
 
     @Test
     void updatesRole() throws Exception {
-        Role role = roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        Role role = roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
 
-        mvc.perform(put("/api/roles/{id}", role.id()).header(HttpHeaders.AUTHORIZATION, bearerWith("ROLES_MANAGE"))
+        mvc.perform(put("/api/roles/{id}", role.id())
+                        .header(HttpHeaders.AUTHORIZATION, bearerWith("ROLES_MANAGE", "USERS_VIEW"))
                         .contentType(MediaType.APPLICATION_JSON).content("""
                                 {"name": "Ventas", "permissionCodes": ["USERS_VIEW"]}
                                 """))
@@ -97,8 +101,24 @@ class RolesApiIT extends ApiIntegrationTest {
     }
 
     @Test
+    void roleManagerCannotWidenTheirOwnRole() throws Exception {
+        User manager = createUser("gestor", "ROLES_MANAGE");
+        UUID ownRole = manager.roleIds().iterator().next();
+        String ownRoleName = roleManagement.get(ownRole).name();
+
+        mvc.perform(put("/api/roles/{id}", ownRole).header(HttpHeaders.AUTHORIZATION, bearer(manager))
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"name": "%s", "permissionCodes": ["ROLES_MANAGE", "USERS_MANAGE"]}
+                                """.formatted(ownRoleName)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("You can only grant permissions you already hold"));
+
+        assertThat(roleManagement.get(ownRole).permissions()).extracting(p -> p.value()).containsExactly("ROLES_MANAGE");
+    }
+
+    @Test
     void deletesUnusedRoleButNotOneInUse() throws Exception {
-        Role unused = roleManagement.create(new RoleCommand("Temporal", Set.of()));
+        Role unused = roleManagement.create(superAdmin().id(), new RoleCommand("Temporal", Set.of()));
         String auth = bearerWith("ROLES_MANAGE");
         Role inUse = roleManagement.list().stream().filter(r -> r.name().startsWith("role-")).findFirst().orElseThrow();
 

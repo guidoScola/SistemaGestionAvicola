@@ -22,6 +22,7 @@ class UserManagementServiceTest {
     private InMemoryRefreshTokenStore refreshTokens;
     private UserManagementService service;
     private Role seller;
+    private User admin;
 
     @BeforeEach
     void setUp() {
@@ -29,7 +30,9 @@ class UserManagementServiceTest {
         refreshTokens = new InMemoryRefreshTokenStore();
         InMemoryRoleRepository roles = new InMemoryRoleRepository();
         seller = roles.save(Role.create("Vendedor", Set.of()));
-        service = new UserManagementService(users, roles, new FakePasswordHasher(), refreshTokens);
+        service = new UserManagementService(users, roles, new FakePasswordHasher(), refreshTokens,
+                new PermissionResolver(roles, java.util.List::of));
+        admin = service.createSuperAdmin("admin", "Admin", "admin-pass-1");
     }
 
     private void openSessionFor(User user) {
@@ -41,7 +44,7 @@ class UserManagementServiceTest {
         User user = createJuan();
         openSessionFor(user);
 
-        service.resetPassword(user.id(), "newSecret1");
+        service.resetPassword(admin.id(), user.id(), "newSecret1");
 
         assertThat(refreshTokens.all()).isNotEmpty().allMatch(RefreshToken::revoked);
     }
@@ -61,7 +64,7 @@ class UserManagementServiceTest {
         User user = createJuan();
         openSessionFor(user);
 
-        service.deactivate(user.id());
+        service.deactivate(admin.id(), user.id());
 
         assertThat(refreshTokens.all()).isNotEmpty().allMatch(RefreshToken::revoked);
     }
@@ -77,7 +80,7 @@ class UserManagementServiceTest {
     }
 
     private User createJuan() {
-        return service.create(new CreateUserCommand("jperez", "Juan Perez", "secret123", Set.of(seller.id())));
+        return service.create(admin.id(), new CreateUserCommand("jperez", "Juan Perez", "secret123", Set.of(seller.id())));
     }
 
     @Test
@@ -94,24 +97,24 @@ class UserManagementServiceTest {
     void rejectsDuplicatedUsernameIgnoringCase() {
         createJuan();
 
-        assertThatThrownBy(() -> service.create(new CreateUserCommand("JPEREZ", "Otro", "secret123", Set.of())))
+        assertThatThrownBy(() -> service.create(admin.id(), new CreateUserCommand("JPEREZ", "Otro", "secret123", Set.of())))
                 .isInstanceOf(ConflictException.class);
-        assertThat(users.findAll()).hasSize(1);
+        assertThat(users.findAll()).hasSize(2);
     }
 
     @Test
     void rejectsPasswordShorterThan8Characters() {
-        assertThatThrownBy(() -> service.create(new CreateUserCommand("jperez", "Juan", "short12", Set.of())))
+        assertThatThrownBy(() -> service.create(admin.id(), new CreateUserCommand("jperez", "Juan", "short12", Set.of())))
                 .isInstanceOf(InvalidInputException.class);
-        assertThat(users.findAll()).isEmpty();
+        assertThat(users.findAll()).hasSize(1);
     }
 
     @Test
     void rejectsUnknownRole() {
-        assertThatThrownBy(() -> service.create(
+        assertThatThrownBy(() -> service.create(admin.id(),
                 new CreateUserCommand("jperez", "Juan", "secret123", Set.of(UUID.randomUUID()))))
                 .isInstanceOf(InvalidInputException.class);
-        assertThat(users.findAll()).isEmpty();
+        assertThat(users.findAll()).hasSize(1);
     }
 
     @Test
@@ -119,16 +122,16 @@ class UserManagementServiceTest {
         Set<UUID> withNull = new java.util.HashSet<>();
         withNull.add(null);
 
-        assertThatThrownBy(() -> service.create(new CreateUserCommand("jperez", "Juan", "secret123", withNull)))
+        assertThatThrownBy(() -> service.create(admin.id(), new CreateUserCommand("jperez", "Juan", "secret123", withNull)))
                 .isInstanceOf(InvalidInputException.class);
-        assertThat(users.findAll()).isEmpty();
+        assertThat(users.findAll()).hasSize(1);
     }
 
     @Test
     void updatesFullNameAndRoles() {
         User user = createJuan();
 
-        User updated = service.update(user.id(), new UpdateUserCommand("Juan P.", Set.of()));
+        User updated = service.update(admin.id(), user.id(), new UpdateUserCommand("Juan P.", Set.of()));
 
         assertThat(updated.fullName()).isEqualTo("Juan P.");
         assertThat(updated.roleIds()).isEmpty();
@@ -138,10 +141,10 @@ class UserManagementServiceTest {
     void deactivatesAndActivatesUser() {
         User user = createJuan();
 
-        service.deactivate(user.id());
+        service.deactivate(admin.id(), user.id());
         assertThat(users.findById(user.id()).orElseThrow().isActive()).isFalse();
 
-        service.activate(user.id());
+        service.activate(admin.id(), user.id());
         assertThat(users.findById(user.id()).orElseThrow().isActive()).isTrue();
     }
 
@@ -149,7 +152,7 @@ class UserManagementServiceTest {
     void adminResetsPassword() {
         User user = createJuan();
 
-        service.resetPassword(user.id(), "newSecret1");
+        service.resetPassword(admin.id(), user.id(), "newSecret1");
 
         assertThat(users.findById(user.id()).orElseThrow().passwordHash()).isEqualTo("hashed:newSecret1");
     }

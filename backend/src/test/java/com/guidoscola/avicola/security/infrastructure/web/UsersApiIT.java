@@ -42,6 +42,41 @@ class UsersApiIT extends ApiIntegrationTest {
     }
 
     @Test
+    void superAdminIsProtectedFromUsersWithoutSuperAdminRights() throws Exception {
+        User root = superAdmin();
+        String manager = bearerWith("USERS_VIEW", "USERS_MANAGE");
+
+        mvc.perform(get("/api/users/{id}", root.id()).header(HttpHeaders.AUTHORIZATION, manager))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.superAdmin").value(true));
+        mvc.perform(post("/api/users/{id}/deactivate", root.id()).header(HttpHeaders.AUTHORIZATION, manager))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/users/{id}/password", root.id()).header(HttpHeaders.AUTHORIZATION, manager)
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"newPassword": "hijacked-1"}
+                                """))
+                .andExpect(status().isForbidden());
+
+        assertThat(userManagement.get(root.id()).isActive()).isTrue();
+        assertThat(authentication.login(root.username().value(), PASSWORD)).isNotNull();
+    }
+
+    @Test
+    void managerCannotAssignRolesWithPermissionsTheyLack() throws Exception {
+        Role everything = roleManagement.create(superAdmin().id(), new RoleCommand("Todo", Set.of("USERS_MANAGE", "ROLES_MANAGE")));
+        User manager = createUser("gestor", "USERS_MANAGE");
+
+        mvc.perform(put("/api/users/{id}", manager.id()).header(HttpHeaders.AUTHORIZATION, bearer(manager))
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"fullName": "Gestor", "roleIds": ["%s"]}
+                                """.formatted(everything.id())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("You can only assign roles whose permissions you already hold"));
+
+        assertThat(userManagement.get(manager.id()).roleIds()).doesNotContain(everything.id());
+    }
+
+    @Test
     void getsOneUserOr404() throws Exception {
         User juan = createUser("jperez");
         String auth = bearerWith("USERS_VIEW");
@@ -55,7 +90,7 @@ class UsersApiIT extends ApiIntegrationTest {
 
     @Test
     void creatingRequiresUsersManage() throws Exception {
-        Role seller = roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        Role seller = roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
         String body = """
                 {"username": "mgomez", "fullName": "Maria Gomez", "password": "secret123", "roleIds": ["%s"]}
                 """.formatted(seller.id());
@@ -99,7 +134,7 @@ class UsersApiIT extends ApiIntegrationTest {
     @Test
     void updatesFullNameAndRoles() throws Exception {
         User juan = createUser("jperez");
-        Role seller = roleManagement.create(new RoleCommand("Vendedor", Set.of()));
+        Role seller = roleManagement.create(superAdmin().id(), new RoleCommand("Vendedor", Set.of()));
 
         mvc.perform(put("/api/users/{id}", juan.id()).header(HttpHeaders.AUTHORIZATION, bearerWith("USERS_MANAGE"))
                         .contentType(MediaType.APPLICATION_JSON)

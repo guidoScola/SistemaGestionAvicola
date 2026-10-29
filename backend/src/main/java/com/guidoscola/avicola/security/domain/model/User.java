@@ -13,19 +13,27 @@ public class User {
     private String fullName;
     private String passwordHash;
     private boolean active;
+    private final boolean superAdmin;
     private Set<UUID> roleIds;
 
-    public User(UUID id, Username username, String fullName, String passwordHash, boolean active, Set<UUID> roleIds) {
+    public User(UUID id, Username username, String fullName, String passwordHash, boolean active,
+                boolean superAdmin, Set<UUID> roleIds) {
         this.id = Objects.requireNonNull(id);
         this.username = Objects.requireNonNull(username);
         this.fullName = requireFullName(fullName);
         this.passwordHash = Objects.requireNonNull(passwordHash);
         this.active = active;
+        this.superAdmin = superAdmin;
         this.roleIds = Set.copyOf(roleIds);
     }
 
     public static User create(Username username, String fullName, String passwordHash, Set<UUID> roleIds) {
-        return new User(UUID.randomUUID(), username, fullName, passwordHash, true, roleIds);
+        return new User(UUID.randomUUID(), username, fullName, passwordHash, true, false, roleIds);
+    }
+
+    /** The top-level administrator: holds every permission and can only be managed by another super admin. */
+    public static User createSuperAdmin(Username username, String fullName, String passwordHash) {
+        return new User(UUID.randomUUID(), username, fullName, passwordHash, true, true, Set.of());
     }
 
     public void update(String fullName, Set<UUID> roleIds) {
@@ -70,6 +78,10 @@ public class User {
 
     public boolean isActive() {
         return active;
+    }
+
+    public boolean isSuperAdmin() {
+        return superAdmin;
     }
 
     public Set<UUID> roleIds() {
