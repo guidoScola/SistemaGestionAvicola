@@ -10,10 +10,7 @@ import com.guidoscola.avicola.shared.domain.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Entry of supplier vouchers. The VAT purchases ledger and the supplier current accounts are derived from them,
@@ -55,12 +52,6 @@ public class SupplierVoucherService {
 
     public List<VoucherEntry> list(LocalDate from, LocalDate to) {
         DateRange.requireComplete(from, to);
-        return withSuppliers(vouchers.findByIssueDateBetween(from, to));
-    }
-
-    List<VoucherEntry> withSuppliers(List<SupplierVoucher> list) {
-        Map<UUID, Supplier> byId = suppliers.findAll().stream()
-                .collect(Collectors.toMap(Supplier::id, Function.identity()));
-        return list.stream().map(v -> new VoucherEntry(v, byId.get(v.supplierId()))).toList();
+        return VoucherEntry.join(vouchers.findByIssueDateBetween(from, to), suppliers.findAll());
     }
 }

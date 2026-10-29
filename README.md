@@ -98,6 +98,14 @@ Known limitation: permission or status changes reach an already issued access to
 | POST, PUT, DELETE | `/api/roles`, `/api/roles/{id}` | `ROLES_MANAGE` |
 | GET | `/api/suppliers`, `/api/suppliers/{id}` | `SUPPLIERS_VIEW` |
 | POST, PUT | `/api/suppliers`, `/api/suppliers/{id}`, `/api/suppliers/{id}/activate`, `/api/suppliers/{id}/deactivate` | `SUPPLIERS_MANAGE` |
+| GET | `/api/purchases/vouchers?from&to`, `/api/purchases/vouchers/{id}` | `PURCHASES_VIEW` |
+| POST | `/api/purchases/vouchers` | `PURCHASES_MANAGE` |
+| GET | `/api/purchases/vat-ledger?from&to` (VAT purchases ledger, credit notes negative) | `PURCHASES_VIEW` |
+| GET | `/api/purchases/suppliers/{id}/account?from&to` (current account; range optional) | `PURCHASES_VIEW` |
+
+Supplier vouchers: Factura, Nota de Débito and Nota de Crédito, letters A, B and C. Only A vouchers carry net taxed
+amounts and VAT (21%, 10.5%, 27%); each VAT amount must match its net × rate within $1.00. The VAT ledger and the
+current accounts are computed from the vouchers, so they update as soon as a voucher is registered.
 
 Errors use RFC 9457 problem details (`application/problem+json`).
 
