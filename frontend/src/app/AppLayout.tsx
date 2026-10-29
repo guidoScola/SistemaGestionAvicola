@@ -22,6 +22,9 @@ export function AppLayout() {
         <strong>Sistema de Gestión Avícola</strong>
         <nav>
           <NavLink to="/">Inicio</NavLink>
+          <Can permission="SUPPLIERS_VIEW">
+            <NavLink to="/proveedores">Proveedores</NavLink>
+          </Can>
           <Can permission="USERS_VIEW">
             <NavLink to="/usuarios">Usuarios</NavLink>
           </Can>

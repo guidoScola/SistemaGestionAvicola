@@ -21,6 +21,8 @@ const labels: Record<string, string> = {
   USERS_MANAGE: 'Gestionar usuarios',
   ROLES_VIEW: 'Ver roles y permisos',
   ROLES_MANAGE: 'Gestionar roles',
+  SUPPLIERS_VIEW: 'Ver proveedores',
+  SUPPLIERS_MANAGE: 'Gestionar proveedores',
 }
 
 /** Spanish label for a permission code; falls back to the backend description for codes added later. */

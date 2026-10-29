@@ -11,11 +11,13 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 ## Tasks
 | ID | Specs | Unit | Route | Status | Commit |
 |---|---|---|---|---|---|
-| T1 | S1 | Suppliers backend: domain, V4 migration + permissions, API | inline | done | see log L3 |
-| T2 | S1 | Suppliers frontend: list, create, edit, deactivate/reactivate | inline | in progress | |
+| T1 | S1 | Suppliers backend: domain, V4 migration + permissions, API | inline | done | cc264fe |
+| T2 | S1 | Suppliers frontend: list, create, edit, deactivate/reactivate | inline | done | see log L4 |
 | T3 | S2-S4 | Supplier invoices, VAT ledger, current account | — | blocked on decision | |
 
 ## Log
 - L1 (2026-10-26): "Bien, habria que seguir con le otro modulo"
 - L2 (2026-10-26): Asked which voucher types/tax concepts to support; user: "No es mejor hacer compras y prveedores, los abm y demas" -> do suppliers ABM first, defer the invoice decision.
 - L3 (2026-10-26): T1 RED (106 compile errors), GREEN: 127 backend tests (CuitTest 10, SupplierManagementServiceTest 9, SuppliersApiIT 7). RolesApiIT catalog assertion relaxed from exact 4 codes to hasItems (each module adds permissions).
+- L4 (2026-10-26): T2 RED (7 failing), GREEN: 35 Vitest tests, lint/build clean. Suppliers page with search by name/CUIT, Spanish VAT labels and errors, menu entry gated by SUPPLIERS_VIEW. Smoke on dev: V4 migrated, super admin got SUPPLIERS_* automatically, create 201, invalid CUIT 400.
+- L5 (2026-10-26): Native review of suppliers slice (83b253e..2391515, lenses risk/reliability): APPROVED, acknowledged. Advisories: concurrent same-CUIT create -> already mapped to 409 by ApiExceptionHandler (DataIntegrityViolationException, base code); catalog test uses hasItems instead of exact set; row buttons not disabled while a mutation is pending.

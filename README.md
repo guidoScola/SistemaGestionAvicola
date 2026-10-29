@@ -10,7 +10,7 @@ Management system for purchases, sales and ARCA electronic invoicing, built as a
 | # | Module | Status |
 |---|---|---|
 | 1 | Security and users: login, configurable roles and permissions | Done |
-| 2 | Purchases and suppliers | Planned |
+| 2 | Purchases and suppliers | Suppliers done; invoices, VAT ledger and current accounts in progress |
 | 3 | Payment orders and withholdings | Planned |
 | 4 | Sales, customers and ARCA e-invoicing | Planned |
 | 5 | Reports (PDF, Excel, email) | Planned |
@@ -96,6 +96,8 @@ Known limitation: permission or status changes reach an already issued access to
 | PUT | `/api/users/me/password` | authenticated |
 | GET | `/api/roles`, `/api/roles/{id}`, `/api/permissions` | `ROLES_VIEW` |
 | POST, PUT, DELETE | `/api/roles`, `/api/roles/{id}` | `ROLES_MANAGE` |
+| GET | `/api/suppliers`, `/api/suppliers/{id}` | `SUPPLIERS_VIEW` |
+| POST, PUT | `/api/suppliers`, `/api/suppliers/{id}`, `/api/suppliers/{id}/activate`, `/api/suppliers/{id}/deactivate` | `SUPPLIERS_MANAGE` |
 
 Errors use RFC 9457 problem details (`application/problem+json`).
 

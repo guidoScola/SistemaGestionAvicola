@@ -2,6 +2,10 @@ import { ApiError } from './httpClient'
 
 // Backend problem details are in English; the UI shows them in Spanish.
 const exact: Record<string, string> = {
+  'Invalid CUIT': 'El CUIT no es válido.',
+  'Invalid email': 'El email no es válido.',
+  'Business name is required': 'La razón social es obligatoria.',
+  'VAT condition is required': 'La condición frente al IVA es obligatoria.',
   'Password must be at least 8 characters': 'La contraseña debe tener al menos 8 caracteres.',
   'Current password is incorrect': 'La contraseña actual no es correcta.',
   'One or more roles do not exist': 'Alguno de los roles seleccionados no existe.',
@@ -26,6 +30,7 @@ const exact: Record<string, string> = {
 const prefixes: Array<[string, string]> = [
   ['Username already exists', 'Ese nombre de usuario ya existe.'],
   ['Role name already exists', 'Ya existe un rol con ese nombre.'],
+  ['A supplier with CUIT', 'Ya existe un proveedor con ese CUIT.'],
 ]
 
 export function toUserMessage(error: unknown): string {
