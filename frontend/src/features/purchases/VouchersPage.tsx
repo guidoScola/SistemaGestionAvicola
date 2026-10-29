@@ -39,11 +39,14 @@ export function VouchersPage() {
       <div className="page-header">
         <h1>Comprobantes de proveedores</h1>
         <Can permission="PURCHASES_MANAGE">
-          {!creating && (
-            <button type="button" onClick={() => setCreating(true)}>
-              Nuevo comprobante
-            </button>
-          )}
+          {/* The form picks the supplier from the supplier list, which needs SUPPLIERS_VIEW. */}
+          <Can permission="SUPPLIERS_VIEW">
+            {!creating && (
+              <button type="button" onClick={() => setCreating(true)}>
+                Nuevo comprobante
+              </button>
+            )}
+          </Can>
         </Can>
       </div>
       <Feedback error={error} success={success} />

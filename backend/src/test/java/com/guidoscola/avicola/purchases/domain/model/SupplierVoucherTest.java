@@ -85,9 +85,22 @@ class SupplierVoucherTest {
         assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, new VoucherAmounts(null, money("1000"), null, null,
                 money("210"), null, null, null, null, null, null)))
                 .hasMessage("VAT 10.5% does not match its net taxed amount");
-        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, new VoucherAmounts(null, null, null, null, null,
-                money("27"), null, null, null, null, null)))
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, new VoucherAmounts(null, null, money("100"), null,
+                null, money("40"), null, null, null, null, null)))
                 .hasMessage("VAT 27% does not match its net taxed amount");
+    }
+
+    @Test
+    void vatRequiresANetTaxedAmount() {
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, taxed21("0", "0.99")))
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("VAT 21% requires a net taxed amount");
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, new VoucherAmounts(null, null, null, null,
+                money("0.50"), null, money("100"), null, null, null, null)))
+                .hasMessage("VAT 10.5% requires a net taxed amount");
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_A, new VoucherAmounts(null, null, null, null, null,
+                money("1"), money("100"), null, null, null, null)))
+                .hasMessage("VAT 27% requires a net taxed amount");
     }
 
     @Test
@@ -101,6 +114,19 @@ class SupplierVoucherTest {
         assertThatThrownBy(() -> voucher(VoucherType.FACTURA_C, nonTaxed("10.005")))
                 .isInstanceOf(InvalidInputException.class)
                 .hasMessage("Amounts must have at most 2 decimals");
+    }
+
+    @Test
+    void amountsMustFitThirteenIntegerDigits() {
+        assertThat(voucher(VoucherType.FACTURA_C, nonTaxed("9999999999999.99")).total())
+                .isEqualByComparingTo("9999999999999.99");
+
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_C, nonTaxed("10000000000000")))
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("Amounts must have at most 13 integer digits");
+        assertThatThrownBy(() -> voucher(VoucherType.FACTURA_C, nonTaxed("1E+999999999")))
+                .isInstanceOf(InvalidInputException.class)
+                .hasMessage("Amounts must have at most 13 integer digits");
     }
 
     @Test

@@ -28,7 +28,9 @@ export function AppLayout() {
           <Can permission="PURCHASES_VIEW">
             <NavLink to="/compras/comprobantes">Comprobantes</NavLink>
             <NavLink to="/compras/iva-compras">IVA Compras</NavLink>
-            <NavLink to="/compras/cuenta-corriente">Cuenta corriente</NavLink>
+            <Can permission="SUPPLIERS_VIEW">
+              <NavLink to="/compras/cuenta-corriente">Cuenta corriente</NavLink>
+            </Can>
           </Can>
           <Can permission="USERS_VIEW">
             <NavLink to="/usuarios">Usuarios</NavLink>

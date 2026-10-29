@@ -78,6 +78,10 @@ public class SupplierVoucher {
     }
 
     private static void requireVatMatches(BigDecimal net, BigDecimal vat, String rate, String label) {
+        // The rounding tolerance must not let VAT through without any net it could come from.
+        if (net.signum() == 0 && vat.signum() != 0) {
+            throw new InvalidInputException("VAT " + label + " requires a net taxed amount");
+        }
         BigDecimal expected = net.multiply(new BigDecimal(rate));
         if (expected.subtract(vat).abs().compareTo(VAT_TOLERANCE) > 0) {
             throw new InvalidInputException("VAT " + label + " does not match its net taxed amount");

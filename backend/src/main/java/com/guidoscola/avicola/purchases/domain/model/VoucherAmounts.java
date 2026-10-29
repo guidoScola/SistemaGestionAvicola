@@ -15,6 +15,9 @@ public record VoucherAmounts(BigDecimal netTaxed21, BigDecimal netTaxed105, BigD
                              BigDecimal nonTaxed, BigDecimal exempt, BigDecimal vatPerceptions,
                              BigDecimal grossIncomePerceptions, BigDecimal otherTaxes) {
 
+    /** Matches the NUMERIC(15,2) columns. */
+    private static final int MAX_INTEGER_DIGITS = 13;
+
     public static final VoucherAmounts ZERO = new VoucherAmounts(null, null, null, null, null, null, null, null, null,
             null, null);
 
@@ -35,6 +38,10 @@ public record VoucherAmounts(BigDecimal netTaxed21, BigDecimal netTaxed105, BigD
     private static BigDecimal money(BigDecimal value) {
         if (value == null) {
             return BigDecimal.ZERO.setScale(2);
+        }
+        // Checked before rescaling: a huge exponent would otherwise materialize a number with billions of digits.
+        if (value.precision() - value.scale() > MAX_INTEGER_DIGITS) {
+            throw new InvalidInputException("Amounts must have at most " + MAX_INTEGER_DIGITS + " integer digits");
         }
         if (value.stripTrailingZeros().scale() > 2) {
             throw new InvalidInputException("Amounts must have at most 2 decimals");
