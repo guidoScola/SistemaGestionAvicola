@@ -3,3 +3,7 @@
 *.log
 .claude/settings.local.json
 .atl/.skill-registry.cache.json
+
+# Local-only files (never published)
+SistemaGestionAvicola.md
+.atl/
