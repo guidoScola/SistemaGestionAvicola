@@ -20,10 +20,10 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 | T3 | S2, S5 | Persistence: Flyway V1 + seed, JPA adapters, admin bootstrap | inline | done | 4f46a20 |
 | T4 | S1 | Authentication API + SecurityConfig + JWT | inline | done | 46b36f2 |
 | T5 | S2, S3, S4 | Users/Roles/Permissions API with @PreAuthorize | inline | done | 66570d8 + fix |
-| T6 | S1, S4 | Frontend auth, protected routes, `<Can>` | inline | done | see log L15 |
-| T7 | S2, S3, S4 | Frontend users and roles screens | inline | pending | |
+| T6 | S1, S4 | Frontend auth, protected routes, `<Can>` | inline | done | 8d5d2ee |
+| T7 | S2, S3, S4, S6 | Frontend users and roles screens | inline | done | see log L17 |
 | T5b | S6 | Super admin + no-escalation rules | inline | done | see log L12 |
-| T8 | — | README | inline | pending | |
+| T8 | — | README | inline | done | see log L17 |
 
 Risk: item 2 (security) on T4/T5 → independent verifier at their close.
 
@@ -44,3 +44,6 @@ Risk: item 2 (security) on T4/T5 → independent verifier at their close.
 - L14 (2026-10-26): Recovered review review-a297d4d4623ff00a APPROVED and acknowledged (boundary now 1d163e7). Non-blocking advisories: existing DBs migrated by V3 get no super admin (only fresh bootstrap); USERS_MANAGE can deactivate/strip roles of a more privileged non super admin; last-super-admin count not locked; no test asserts super admin token permissions. User asked review criteria; declined review of the doc-only change. User asked whether SDD is used: answered ODD (SDD skills not installed in gentle-ai 4.2.0).
 - L15 (2026-10-26): T6 RED (imports missing), GREEN: 12 Vitest tests, build and oxlint clean. Single in-flight refresh (backend treats refresh-token reuse as theft). UI copy in Spanish. Smoke run: admin sees Usuarios+Roles; vendedor (ROLES_VIEW) sees Roles only, GET /api/users 403.
 - L16 (2026-10-26): User: "Quiero que esto lo guardes en mi reposityorio de github" -> chose "Público, sin la propuesta": SistemaGestionAvicola.md removed from whole history and git-ignored before first push.
+- L17 (2026-10-26): User: "dale segui". T7 RED (13 failing), GREEN: 25 Vitest tests; lint and build clean. Users page (list, create, edit roles, activate/deactivate, reset password, super admin badge without actions for others), Roles page (permission checkboxes with Spanish labels, delete with in-use message), Mi cuenta (change own password). Backend errors translated to Spanish. T8 README written (root), replaces Vite template README.
+- L18 (2026-10-26): Native review of frontend slice (lineage review-5b3bec7929b49bd7, base 296d0cf..4e94aaf): APPROVED, acknowledged. Fixed advisories R3-001 (backend down on load left app stuck in Cargando) and R1-001/R3-002 (failed logout cleared UI but kept server session): RED observed (3 tests), GREEN 28 tests. Remaining advisories: super admin cannot manage other super admins from UI (only one exists today); non-ApiError reported as connectivity error.
+- L19 (2026-10-26): Review of fix 24e1b26 APPROVED, acknowledged. Advisories kept for later: logout treats any non-ok status as failure (backend logout is public and always 204, so unreachable in practice); no test for HTTP-error logout; same message for network vs server error; logout button not disabled while in flight.

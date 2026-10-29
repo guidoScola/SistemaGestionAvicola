@@ -88,6 +88,28 @@ describe('authentication flow', () => {
     expect(await screen.findByText('No tenés permiso para ver esta sección.')).toBeInTheDocument()
   })
 
+  it('shows the login page when the backend is down on load', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    renderApp('/')
+
+    expect(await screen.findByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument()
+  })
+
+  it('keeps the session and warns when logout cannot reach the server', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(200, sessionBody('token-1')))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    renderApp('/')
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No se pudo cerrar la sesión. Revisá la conexión e intentá de nuevo.',
+    )
+    expect(screen.getByText('Juan Perez')).toBeInTheDocument()
+  })
+
   it('logs out and returns to the login page', async () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse(200, sessionBody('token-1')))
