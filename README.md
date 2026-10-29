@@ -113,3 +113,5 @@ Errors use RFC 9457 problem details (`application/problem+json`).
 
 Features are tracked in `odd/tasks/<feature>.md` (specs, tasks and a decision log). Commits follow
 [Conventional Commits](https://www.conventionalcommits.org/).
+
+GitHub Actions (`.github/workflows/ci.yml`) runs both suites, plus frontend lint and build, on every pull request and on pushes to `main`. The backend job uses a PostgreSQL 17 service container for `avicola_test`.
