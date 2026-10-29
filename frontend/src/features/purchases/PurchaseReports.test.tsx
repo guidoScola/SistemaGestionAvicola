@@ -115,6 +115,20 @@ describe('purchase reports', () => {
     expect(screen.getByRole('link', { name: 'IVA Compras' })).toBeInTheDocument()
   })
 
+  it('explains an inverted period instead of querying it', async () => {
+    mockApi(['PURCHASES_VIEW'], {
+      'GET /api/purchases/vat-ledger?from=2026-10-01&to=2026-10-31': ok(ledger),
+    })
+    renderApp('/compras/iva-compras')
+    expect(await screen.findByRole('row', { name: /Totales/ })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await userEvent.clear(screen.getByLabelText('Desde'))
+    await userEvent.type(screen.getByLabelText('Desde'), '2026-11-01')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('La fecha "Desde" no puede ser posterior a "Hasta".')
+  })
+
   it('requires SUPPLIERS_VIEW for the current account', async () => {
     mockApi(['PURCHASES_VIEW'], {})
 
