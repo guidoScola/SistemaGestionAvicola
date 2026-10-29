@@ -1,6 +1,7 @@
 package com.guidoscola.avicola.security.application;
 
 import com.guidoscola.avicola.security.application.port.PasswordHasher;
+import com.guidoscola.avicola.security.application.port.RefreshTokenStore;
 import com.guidoscola.avicola.security.application.port.RoleRepository;
 import com.guidoscola.avicola.security.application.port.UserRepository;
 import com.guidoscola.avicola.security.domain.model.User;
@@ -20,11 +21,14 @@ public class UserManagementService {
     private final UserRepository users;
     private final RoleRepository roles;
     private final PasswordHasher passwordHasher;
+    private final RefreshTokenStore refreshTokens;
 
-    public UserManagementService(UserRepository users, RoleRepository roles, PasswordHasher passwordHasher) {
+    public UserManagementService(UserRepository users, RoleRepository roles, PasswordHasher passwordHasher,
+                                 RefreshTokenStore refreshTokens) {
         this.users = users;
         this.roles = roles;
         this.passwordHasher = passwordHasher;
+        this.refreshTokens = refreshTokens;
     }
 
     public User create(CreateUserCommand command) {
@@ -53,12 +57,15 @@ public class UserManagementService {
         User user = get(id);
         user.deactivate();
         users.save(user);
+        refreshTokens.revokeAllForUser(id);
     }
 
+    /** Sets a new password and ends every open session of the user. */
     public void resetPassword(UUID id, String newPassword) {
         User user = get(id);
         user.changePasswordHash(passwordHasher.hash(requireValidPassword(newPassword)));
         users.save(user);
+        refreshTokens.revokeAllForUser(id);
     }
 
     public void changeOwnPassword(UUID id, String currentPassword, String newPassword) {
@@ -68,6 +75,7 @@ public class UserManagementService {
         }
         user.changePasswordHash(passwordHasher.hash(requireValidPassword(newPassword)));
         users.save(user);
+        refreshTokens.revokeAllForUser(id);
     }
 
     public User get(UUID id) {
@@ -79,6 +87,9 @@ public class UserManagementService {
     }
 
     private Set<UUID> requireExistingRoles(Set<UUID> roleIds) {
+        if (roleIds != null && roleIds.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new InvalidInputException("Role ids must not be null");
+        }
         Set<UUID> ids = roleIds == null ? Set.of() : Set.copyOf(roleIds);
         if (roles.findAllById(ids).size() != ids.size()) {
             throw new InvalidInputException("One or more roles do not exist");

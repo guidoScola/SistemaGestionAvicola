@@ -3,6 +3,7 @@ package com.guidoscola.avicola.security.application;
 import com.guidoscola.avicola.security.application.port.PermissionCatalog;
 import com.guidoscola.avicola.security.application.port.RoleRepository;
 import com.guidoscola.avicola.security.application.port.UserRepository;
+import com.guidoscola.avicola.security.domain.model.Permission;
 import com.guidoscola.avicola.security.domain.model.PermissionCode;
 import com.guidoscola.avicola.security.domain.model.Role;
 import com.guidoscola.avicola.shared.domain.ConflictException;
@@ -57,8 +58,8 @@ public class RoleManagementService {
         return roles.findAll();
     }
 
-    public Set<PermissionCode> permissionCatalog() {
-        return catalog.all();
+    public List<Permission> permissionCatalog() {
+        return catalog.list();
     }
 
     private void requireUniqueName(String name, UUID ownId) {

@@ -1,6 +1,7 @@
 package com.guidoscola.avicola.security.application;
 
 import com.guidoscola.avicola.security.application.port.PermissionCatalog;
+import com.guidoscola.avicola.security.domain.model.Permission;
 import com.guidoscola.avicola.security.domain.model.PermissionCode;
 import com.guidoscola.avicola.security.domain.model.Role;
 import com.guidoscola.avicola.security.domain.model.User;
@@ -10,6 +11,7 @@ import com.guidoscola.avicola.shared.domain.InvalidInputException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +27,9 @@ class RoleManagementServiceTest {
     void setUp() {
         roles = new InMemoryRoleRepository();
         users = new InMemoryUserRepository();
-        PermissionCatalog catalog = () -> Set.of(new PermissionCode("USERS_VIEW"), new PermissionCode("ROLES_VIEW"));
+        PermissionCatalog catalog = () -> List.of(
+                new Permission(new PermissionCode("ROLES_VIEW"), "View roles"),
+                new Permission(new PermissionCode("USERS_VIEW"), "View users"));
         service = new RoleManagementService(roles, users, catalog);
     }
 
