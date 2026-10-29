@@ -14,6 +14,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -43,7 +44,8 @@ class RolesApiIT extends ApiIntegrationTest {
         mvc.perform(get("/api/permissions").header(HttpHeaders.AUTHORIZATION, bearerWith("ROLES_VIEW")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].code",
-                        containsInAnyOrder("USERS_VIEW", "USERS_MANAGE", "ROLES_VIEW", "ROLES_MANAGE")))
+                        hasItems("USERS_VIEW", "USERS_MANAGE", "ROLES_VIEW", "ROLES_MANAGE", "SUPPLIERS_VIEW",
+                                "SUPPLIERS_MANAGE")))
                 .andExpect(jsonPath("$[?(@.code == 'USERS_VIEW')].description").value("View users"));
     }
 
