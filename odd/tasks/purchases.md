@@ -15,8 +15,8 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 | T2 | S1 | Suppliers frontend: list, create, edit, deactivate/reactivate | inline | done | see log L4 |
 | T3 | S2 | Vouchers backend: domain, V5 migration + permissions, entry/list/get API | inline | done | see L8 |
 | T4 | S3, S4 | VAT ledger and supplier current account queries + API | inline | done | see L9 |
-| T5 | S2 | Vouchers frontend: list and entry form | inline | pending | |
-| T6 | S3, S4 | VAT ledger and current account screens | inline | pending | |
+| T5 | S2 | Vouchers frontend: list and entry form | inline | done | see L10 |
+| T6 | S3, S4 | VAT ledger and current account screens | inline | done | see L10 |
 
 ## Log
 - L1 (2026-10-26): "Bien, habria que seguir con le otro modulo"
@@ -28,3 +28,6 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 - L7 (2026-10-27): Proposed the standard Argentine voucher set and tax concepts; user: "si esta bien el  estandar". T3 split into T3-T6, all inline (no Writer trigger: backend and frontend depend on the same contract).
 - L8 (2026-10-27): T3 RED (172 compile errors), GREEN: SupplierVoucherTest 7, SupplierVoucherServiceTest 7, SupplierVouchersApiIT 4; full backend suite 145 tests, 0 failures. Endpoints: POST/GET /api/purchases/vouchers (from,to required), GET /api/purchases/vouchers/{id}.
 - L9 (2026-10-27): T4 RED (20 compile errors), GREEN: PurchaseReportsServiceTest 6, PurchaseReportsApiIT 3; full backend suite 154 tests, 0 failures. Ledger and account are derived queries (no posting table); README API table updated.
+- L10 (2026-10-27): T5+T6 RED (8 failing), GREEN: VouchersPage.test 6, PurchaseReports.test 2; full Vitest 43 tests, lint clean, build ok. Screens: /compras/comprobantes (current month, entry form suggests VAT from net, hides VAT fields for B/C, live total), /compras/iva-compras (signed rows + totals), /compras/cuenta-corriente (year to date, includes inactive suppliers). Menu gated by PURCHASES_VIEW; voucher form and account need SUPPLIERS_VIEW to load the supplier list.
+- L11 (2026-10-27): Independent verifier: S2/S3/S4 PASS, no blockers (probes: 10.5% rounding, tolerance edge 22.00/22.01, rejected POSTs keep row count, from==to ledger, negative balances). Native review 0080e3b..c9a329a (lenses risk/reliability, user granted): APPROVED, acknowledged. Advisories for later: bound amount magnitude before setScale (huge exponent / >13 integer digits -> CPU cost or misleading 409); PURCHASES_MANAGE without SUPPLIERS_VIEW gets 403 in voucher form and account page; VAT accepted with zero net within the $1.00 tolerance; inverted range in UI shows no message. Open product question: voucher annulment/deletion.
+- L12 (2026-10-27): Asked about voucher annulment/deletion; user: "dejalo asi por ahora" -> vouchers stay immutable (no edit, annul or delete) for now.
