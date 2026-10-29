@@ -1,6 +1,9 @@
 import { Route, Routes } from 'react-router'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
+import { RolesPage } from '../features/roles/RolesPage'
+import { MyAccountPage } from '../features/users/MyAccountPage'
+import { UsersPage } from '../features/users/UsersPage'
 import { AppLayout } from './AppLayout'
 
 export function AppRoutes() {
@@ -19,7 +22,7 @@ export function AppRoutes() {
           path="usuarios"
           element={
             <ProtectedRoute permission="USERS_VIEW">
-              <h1>Usuarios</h1>
+              <UsersPage />
             </ProtectedRoute>
           }
         />
@@ -27,10 +30,11 @@ export function AppRoutes() {
           path="roles"
           element={
             <ProtectedRoute permission="ROLES_VIEW">
-              <h1>Roles</h1>
+              <RolesPage />
             </ProtectedRoute>
           }
         />
+        <Route path="mi-cuenta" element={<MyAccountPage />} />
       </Route>
     </Routes>
   )

@@ -18,7 +18,9 @@ export function AppLayout() {
             <NavLink to="/roles">Roles</NavLink>
           </Can>
         </nav>
-        <span className="user">{user?.fullName}</span>
+        <NavLink to="/mi-cuenta" className="user">
+          {user?.fullName}
+        </NavLink>
         <button type="button" onClick={() => void logout()}>
           Cerrar sesión
         </button>
