@@ -14,8 +14,8 @@ Delivery strategy: ask-on-risk. Test runners: `./mvnw test` (backend), `npm test
 ## Tasks
 | ID | Specs | Unit | Route | Status | Commit |
 |---|---|---|---|---|---|
-| T1 | — | Repo skeleton (git, backend Boot 4.1.2, Flyway, Postgres profiles, health; Vite React-TS) | inline | in progress | |
-| T2 | S2, S3 | Security domain + ports | inline | pending | |
+| T1 | — | Repo skeleton (git, backend Boot 4.1.2, Flyway, Postgres profiles, health; Vite React-TS) | inline | done | c6e1134 |
+| T2 | S2, S3 | Security domain + ports | inline | done | see log L4 |
 | T3 | S2, S5 | Persistence: Flyway V1 + seed, JPA adapters, admin bootstrap | inline | pending | |
 | T4 | S1 | Authentication API + SecurityConfig + JWT | inline | pending | |
 | T5 | S2, S3, S4 | Users/Roles/Permissions API with @PreAuthorize | inline | pending | |
@@ -29,3 +29,4 @@ Risk: item 2 (security) on T4/T5 → independent verifier at their close.
 - L1 (2026-10-26): "Quiero armar un plan para ejecutar el primer mnodulo del sistema"
 - L2 (2026-10-26): User chose "API REST + React" and "Roles configurables". Plan approved.
 - L3: Environment: JDK 21.0.12, Node 24.15, npm 11.12, git 2.54, Postgres 17 running; no Docker/Maven (use wrapper).
+- L4 (2026-10-26): T2 RED observed (compile errors, symbols missing), GREEN: 38 backend tests pass (domain + UserManagementService + RoleManagementService). Password rule: min 8 chars. Roles in use cannot be deleted.
